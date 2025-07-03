@@ -8,6 +8,7 @@ export class EspeTaskList extends LitElement {
       showAddModal: { type: Boolean },
       selectedTask: { type: Object },
       editingTask: { type: Object },
+      mostrarPorPrioridad: { type: Boolean }, 
     };
   }
 
@@ -124,6 +125,7 @@ export class EspeTaskList extends LitElement {
     this.showAddModal = false;
     this.selectedTask = null;
     this.editingTask = null;
+    this.mostrarPorPrioridad = false;
   }
 
   connectedCallback() {
@@ -150,13 +152,15 @@ export class EspeTaskList extends LitElement {
   }
 
   render() {
+    
     const hoy = new Date().toISOString().slice(0, 10);
     const manana = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
 
     const tareasHoy = this.tasks.filter(t => t.fecha === hoy && !t.completada);
-const tareasManana = this.tasks.filter(t => t.fecha === manana && !t.completada);
+    const tareasManana = this.tasks.filter(t => t.fecha === manana && !t.completada);
 
     return html`
+    
        <div class="section">
       <div class="section-title">Hoy</div>
       ${tareasHoy.map(task => this.renderTask(task))}
@@ -167,7 +171,25 @@ const tareasManana = this.tasks.filter(t => t.fecha === manana && !t.completada)
     </div>
 
     <button @click="${this.abrirModalAgregar}">+ Agregar Tarea</button>
+    <button @click="${this.togglePrioridad}">Ver por prioridad</button>
 
+    ${this.mostrarPorPrioridad ? html`
+      <div class="section">
+        <div class="section-title">Alta Prioridad</div>
+        ${this.tasks.filter(t => t.prioridad === 'Alta' && !t.completada)
+          .map(t => this.renderTask(t))}
+      </div>
+      <div class="section">
+        <div class="section-title">Media Prioridad</div>
+        ${this.tasks.filter(t => t.prioridad === 'Media' && !t.completada)
+          .map(t => this.renderTask(t))}
+      </div>
+      <div class="section">
+        <div class="section-title">Baja Prioridad</div>
+        ${this.tasks.filter(t => t.prioridad === 'Baja' && !t.completada)
+          .map(t => this.renderTask(t))}
+      </div>
+    ` : ''}
 
       <!-- <div id="tasks-container">
         ${this.tasks.map(task => html`
@@ -226,7 +248,9 @@ const tareasManana = this.tasks.filter(t => t.fecha === manana && !t.completada)
     </div>
   `;
 }
-
+  togglePrioridad() {
+    this.mostrarPorPrioridad = !this.mostrarPorPrioridad;
+  }
 
   abrirModalAgregar() {
     this.editingTask = null;
@@ -288,7 +312,10 @@ const tareasManana = this.tasks.filter(t => t.fecha === manana && !t.completada)
 
 
   eliminarTarea(id) {
+    const confirmar = confirm('¿Estás seguro de que deseas eliminar esta tarea?');
+  if (confirmar) {
     this.tasks = this.tasks.filter(task => task.id !== id);
+  }
   }
 
   completarTarea(id) {
